@@ -108,7 +108,16 @@ class MLPPolicy(BasePolicy):
     # query the policy with observation(s) to get selected action(s)
     def get_action(self, obs):
 
-        # TODO: GETTHIS from HW1
+        if len(obs.shape)>1:
+            observation = obs
+        else:
+            observation = obs[None]
+
+        # TODO return the action that the policy prescribes
+        # HINT1: you will need to call self.sess.run
+        # HINT2: the tensor we're interested in evaluating is self.sample_ac
+        # HINT3: in order to run self.sample_ac, it will need observation fed into the feed_dict
+        return self.sess.run(self.sample_ac, feed_dict={self.observations_pl: observation})
 
 #####################################################
 #####################################################
@@ -157,10 +166,15 @@ class MLPPolicyPG(MLPPolicy):
             # to get [Q_t - b_t]
         # HINT4: don't forget that we need to MINIMIZE this self.loss
             # but the equation above is something that should be maximized
-        self.loss = tf.reduce_sum(TODO)
+        if self.discrete:
+            likelihoods = -tf.nn.softmax_cross_entropy_with_logits(labels=self.actions_pl, logits=self.logprob_n)
+        else:
+            likelihoods = -tf.nn.mean_squared_error(labels=self.actions_pl, logits=self.logprob_n)
+        weighted_likelihoods = tf.multiply(likelihoods, self.adv_n)
+        self.loss = tf.reduce_sum(weighted_likelihoods)
 
         # TODO: define what exactly the optimizer should minimize when updating the policy
-        self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(TODO)
+        self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
 
         if self.nn_baseline:
             # TODO: define the loss that should be optimized for training the baseline
