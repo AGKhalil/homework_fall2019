@@ -70,7 +70,7 @@ class PGAgent(BaseAgent):
         # step 3:
         # TODO: pass the calculated values above into the actor/policy's update, 
         # which will perform the actual PG update step
-        loss = self.actor.update(obs, acs, qvals=TODO, adv_n=TODO)
+        loss = self.actor.update(obs, acs, qvals=q_values, adv_n=advantage_values)
         return loss
 
     def calculate_q_vals(self, rews_list):
